@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CareLoop v2 — Live Demo</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --color-background-primary: #ffffff;
+    --color-background-secondary: #f5f5f3;
+    --color-background-tertiary: #ededea;
+    --color-text-primary: #1a1a18;
+    --color-text-secondary: #6b6b67;
+    --color-border-tertiary: rgba(0,0,0,0.12);
+    --color-border-secondary: rgba(0,0,0,0.22);
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-mono: 'SF Mono', 'Fira Code', monospace;
+    --border-radius-md: 8px;
+    --border-radius-lg: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-background-primary: #1e1e1c;
+      --color-background-secondary: #2a2a28;
+      --color-background-tertiary: #141412;
+      --color-text-primary: #f0efe8;
+      --color-text-secondary: #9a9a94;
+      --color-border-tertiary: rgba(255,255,255,0.1);
+      --color-border-secondary: rgba(255,255,255,0.18);
+    }
+  }
+  body { font-family: var(--font-sans); background: var(--color-background-tertiary); color: var(--color-text-primary); min-height: 100vh; }
+  .screen { display: none; }
+  .screen.active { display: block; }
+  .nav { display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; border-bottom: 0.5px solid var(--color-border-tertiary); background: var(--color-background-primary); position: sticky; top: 0; z-index: 10; flex-wrap: wrap; gap: 8px; }
+  .nav-logo { font-size: 15px; font-weight: 500; color: var(--color-text-primary); display: flex; align-items: center; gap: 8px; }
+  .nav-logo-dot { width: 28px; height: 28px; background: #1D9E75; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: white; font-size: 13px; }
+  .nav-tabs { display: flex; gap: 4px; flex-wrap: wrap; }
+  .nav-tab { padding: 6px 13px; border-radius: var(--border-radius-md); font-size: 12px; cursor: pointer; border: 0.5px solid transparent; color: var(--color-text-secondary); transition: all 0.15s; }
+  .nav-tab:hover { background: var(--color-background-secondary); }
+  .nav-tab.active { background: var(--color-background-secondary); border-color: var(--color-border-secondary); color: var(--color-text-primary); }
+  .content { padding: 26px 24px; max-width: 980px; margin: 0 auto; }
+  .page-title { font-size: 20px; font-weight: 500; margin-bottom: 4px; color: var(--color-text-primary); }
+  .page-sub { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 22px; }
+  .card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 18px 20px; margin-bottom: 14px; }
+  .card-title { font-size: 11px; font-weight: 500; color: var(--color-text-secondary); margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .badge { display: inline-flex; align-items: center; gap: 3px; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 500; }
+  .bg { background: #E1F5EE; color: #0F6E56; }
+  .ba { background: #FAEEDA; color: #854F0B; }
+  .bb { background: #E6F1FB; color: #185FA5; }
+  .br { background: #FCEBEB; color: #A32D2D; }
+  .bp { background: #EEEDFE; color: #3C3489; }
+  .bgy { background: #F1EFE8; color: #5F5E5A; }
+  .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 18px; }
+  .metric { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 13px 15px; }
+  .ml { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 5px; }
+  .mv { font-size: 23px; font-weight: 500; color: var(--color-text-primary); }
+  .md { font-size: 11px; margin-top: 3px; color: #3B6D11; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .patient-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .patient-row:last-child { border-bottom: none; }
+  .avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; flex-shrink: 0; }
+  .pi { flex: 1; }
+  .pn { font-size: 13px; font-weight: 500; color: var(--color-text-primary); }
+  .pd { font-size: 11px; color: var(--color-text-secondary); margin-top: 2px; }
+  .flow { display: flex; align-items: center; gap: 0; margin-bottom: 18px; overflow-x: auto; }
+  .flow-step { flex: 1; min-width: 80px; text-align: center; padding: 10px 6px; background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); font-size: 11px; color: var(--color-text-secondary); }
+  .flow-step.done { background: #E1F5EE; border-color: #9FE1CB; color: #0F6E56; }
+  .flow-step.active { background: #E6F1FB; border-color: #B5D4F4; color: #185FA5; }
+  .flow-step.pending { opacity: 0.45; }
+  .flow-arrow { color: var(--color-text-secondary); padding: 0 5px; font-size: 12px; flex-shrink: 0; }
+  .fi { font-size: 18px; margin-bottom: 3px; }
+  .fl { font-size: 11px; font-weight: 500; }
+  .fs { font-size: 10px; margin-top: 1px; opacity: 0.8; }
+  .tl { padding-left: 18px; border-left: 2px solid var(--color-border-tertiary); }
+  .tli { position: relative; padding: 0 0 18px 18px; }
+  .tli::before { content: ''; position: absolute; left: -7px; top: 4px; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--color-border-tertiary); background: var(--color-background-primary); }
+  .tli.done::before { background: #1D9E75; border-color: #1D9E75; }
+  .tli.active::before { background: #378ADD; border-color: #378ADD; }
+  .tli.warn::before { background: #EF9F27; border-color: #EF9F27; }
+  .tt { font-size: 11px; color: var(--color-text-secondary); }
+  .tn { font-size: 13px; font-weight: 500; color: var(--color-text-primary); margin: 2px 0; }
+  .td { font-size: 12px; color: var(--color-text-secondary); }
+  .sms-bubble { max-width: 80%; padding: 10px 14px; border-radius: 15px; font-size: 13px; line-height: 1.55; margin-bottom: 8px; }
+  .sms-out { background: #1D9E75; color: white; border-bottom-right-radius: 3px; margin-left: auto; }
+  .sms-in { background: var(--color-background-secondary); color: var(--color-text-primary); border-bottom-left-radius: 3px; border: 0.5px solid var(--color-border-tertiary); }
+  .sms-lbl { font-size: 10px; color: var(--color-text-secondary); margin-bottom: 3px; }
+  .sms-lbl.r { text-align: right; }
+  .btn { padding: 7px 15px; border-radius: var(--border-radius-md); font-size: 13px; cursor: pointer; border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); transition: all 0.15s; }
+  .btn:hover { background: var(--color-background-secondary); }
+  .btn-p { background: #1D9E75; border-color: #1D9E75; color: white; }
+  .btn-p:hover { background: #0F6E56; }
+  .btn-o { background: #FAEEDA; border-color: #EF9F27; color: #633806; }
+  .btn-o:hover { background: #FAC775; }
+  .mono { font-family: var(--font-mono); font-size: 11px; color: #185FA5; }
+  .fhir-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 13px; }
+  .fhir-row:last-child { border-bottom: none; }
+  .barrier-card { border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 12px 14px; background: var(--color-background-secondary); margin-bottom: 9px; }
+  .barrier-title { font-size: 13px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 3px; }
+  .barrier-desc { font-size: 12px; color: var(--color-text-secondary); }
+  .barrier-action { font-size: 12px; color: #0F6E56; margin-top: 5px; font-weight: 500; }
+  .network-card { border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 12px 14px; background: var(--color-background-primary); margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
+  .network-card.best { border-color: #9FE1CB; background: #E1F5EE; }
+  .nc-info { flex: 1; }
+  .nc-name { font-size: 13px; font-weight: 500; color: var(--color-text-primary); }
+  .nc-detail { font-size: 11px; color: var(--color-text-secondary); margin-top: 2px; }
+  .pcp-stat { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 14px; text-align: center; }
+  .pcp-val { font-size: 26px; font-weight: 500; color: var(--color-text-primary); }
+  .pcp-lbl { font-size: 11px; color: var(--color-text-secondary); margin-top: 4px; }
+  .api-table { width: 100%; font-size: 12px; border-collapse: collapse; }
+  .api-table th { text-align: left; padding: 8px 12px; background: var(--color-background-secondary); font-weight: 500; color: var(--color-text-secondary); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .api-table td { padding: 9px 12px; border-bottom: 0.5px solid var(--color-border-tertiary); vertical-align: middle; font-size: 12px; }
+  .api-table tr:last-child td { border-bottom: none; }
+  .bar-chart { display: flex; align-items: flex-end; gap: 12px; height: 150px; padding: 0 4px; }
+  .bar-group { display: flex; flex-direction: column; align-items: center; flex: 1; }
+  .bar-pair { display: flex; align-items: flex-end; gap: 4px; height: 130px; width: 100%; justify-content: center; }
+  .bar { border-radius: 3px 3px 0 0; min-width: 20px; flex: 1; max-width: 30px; }
+  .bar-lbl { font-size: 11px; color: var(--color-text-secondary); margin-top: 5px; text-align: center; }
+  .legend { display: flex; gap: 16px; margin-bottom: 10px; font-size: 12px; color: var(--color-text-secondary); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+  .pulse { animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(7px)} to{opacity:1;transform:translateY(0)} }
+  .ai { animation: fadeUp 0.3s ease both; }
+  @media (max-width: 700px) {
+    .metrics { grid-template-columns: repeat(2,1fr); }
+    .two-col, .three-col { grid-template-columns: 1fr; }
+    .nav-tabs { gap: 2px; }
+    .nav-tab { padding: 5px 9px; font-size: 11px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="nav-logo">
+    <div class="nav-logo-dot"><i class="ti ti-activity-heartbeat" style="font-size:13px;"></i></div>
+    CareLoop v2
+  </div>
+  <div class="nav-tabs">
+    <div class="nav-tab active" onclick="show('dashboard')">Dashboard</div>
+    <div class="nav-tab" onclick="show('concierge')">Concierge flow</div>
+    <div class="nav-tab" onclick="show('sdoh')">SDOH barriers</div>
+    <div class="nav-tab" onclick="show('network')">Network query</div>
+    <div class="nav-tab" onclick="show('pcp')">PCP dashboard</div>
+    <div class="nav-tab" onclick="show('api')">API plumbing</div>
+    <div class="nav-tab" onclick="show('roi')">ROI</div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="s-dashboard" class="screen active">
+<div class="content ai">
+  <div class="page-title">Live referral dashboard</div>
+  <div class="page-sub">All hospitals · Any payer model · Updated just now</div>
+  <div class="metrics">
+    <div class="metric"><div class="ml">Active referrals</div><div class="mv">142</div><div class="md">↑ +18 today</div></div>
+    <div class="metric"><div class="ml">Avg. time to book</div><div class="mv">31h</div><div class="md">↑ was 21 days</div></div>
+    <div class="metric"><div class="ml">No-show rate</div><div class="mv">7.2%</div><div class="md">↓ was 25%</div></div>
+    <div class="metric"><div class="ml">Dropout rate</div><div class="mv">4.8%</div><div class="md">↓ was 40%</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Recent referrals — concierge mode active on all</div>
+    <div class="patient-row">
+      <div class="avatar" style="background:#E1F5EE;color:#0F6E56;">MR</div>
+      <div class="pi"><div class="pn">Maria Rodriguez</div><div class="pd">Endocrinology · CareLoop booked appt + A1C lab · No patient action needed</div></div>
+      <span class="badge bg"><i class="ti ti-check"></i> Fully booked</span>
+    </div>
+    <div class="patient-row">
+      <div class="avatar" style="background:#FAEEDA;color:#854F0B;">DJ</div>
+      <div class="pi"><div class="pn">David Johnson</div><div class="pd">Cardiology · No response 24h · SDOH barrier detected: transportation</div></div>
+      <span class="badge ba pulse"><i class="ti ti-alert-triangle"></i> Barrier flagged</span>
+    </div>
+    <div class="patient-row">
+      <div class="avatar" style="background:#E6F1FB;color:#185FA5;">AP</div>
+      <div class="pi"><div class="pn">Angela Park</div><div class="pd">Orthopedics · Preferred specialist unavailable · Network query found alt in 8s</div></div>
+      <span class="badge bb"><i class="ti ti-refresh"></i> Alt specialist booked</span>
+    </div>
+    <div class="patient-row">
+      <div class="avatar" style="background:#EEEDFE;color:#3C3489;">KL</div>
+      <div class="pi"><div class="pn">Kevin Lee</div><div class="pd">Neurology · Language: Spanish · Auto-switched bilingual SMS · Booked</div></div>
+      <span class="badge bg"><i class="ti ti-check"></i> Booked</span>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- CONCIERGE FLOW -->
+<div id="s-concierge" class="screen">
+<div class="content ai">
+  <div class="page-title">Full concierge flow</div>
+  <div class="page-sub">Patient never calls anyone — CareLoop does everything, patient just confirms</div>
+  <div class="flow">
+    <div class="flow-step done"><div class="fi"><i class="ti ti-file-text"></i></div><div class="fl">Referral fires</div><div class="fs">ServiceRequest</div></div>
+    <div class="flow-arrow"><i class="ti ti-arrow-right"></i></div>
+    <div class="flow-step done"><div class="fi"><i class="ti ti-robot"></i></div><div class="fl">AI reads notes</div><div class="fs">NLP + Azure</div></div>
+    <div class="flow-arrow"><i class="ti ti-arrow-right"></i></div>
+    <div class="flow-step done"><div class="fi"><i class="ti ti-calendar"></i></div><div class="fl">Slot reserved</div><div class="fs">Auto-booked</div></div>
+    <div class="flow-arrow"><i class="ti ti-arrow-right"></i></div>
+    <div class="flow-step active"><div class="fi"><i class="ti ti-message"></i></div><div class="fl">SMS confirm</div><div class="fs">Reply 1 = done</div></div>
+    <div class="flow-arrow"><i class="ti ti-arrow-right"></i></div>
+    <div class="flow-step pending"><div class="fi"><i class="ti ti-pill"></i></div><div class="fl">Rx synced</div><div class="fs">MedicationReq</div></div>
+    <div class="flow-arrow"><i class="ti ti-arrow-right"></i></div>
+    <div class="flow-step pending"><div class="fi"><i class="ti ti-stethoscope"></i></div><div class="fl">PCP notified</div><div class="fs">Loop closed</div></div>
+    <div class="flow-arrow"><i class="ti ti-arrow-right"></i></div>
+    <div class="flow-step pending"><div class="fi"><i class="ti ti-calendar-check"></i></div><div class="fl">Appointment</div><div class="fs">Done</div></div>
+  </div>
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">SMS thread — Maria Rodriguez</div>
+      <div id="sms-thread" style="min-height:280px;"></div>
+      <div style="margin-top:13px;display:flex;gap:7px;flex-wrap:wrap;" id="sms-btns">
+        <button class="btn btn-p" onclick="smsReply('1')">Reply "1" — confirm</button>
+        <button class="btn" onclick="smsReply('STOP')">Reply "STOP"</button>
+        <button class="btn btn-o" onclick="smsReply('cant afford')">Reply "can't afford it"</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">What CareLoop already did before texting</div>
+      <div class="tl">
+        <div class="tli done"><div class="tt">T+0s · ServiceRequest</div><div class="tn">Referral intercepted</div><div class="td">Endocrinology, Dr. Huang, patient Maria Rodriguez</div></div>
+        <div class="tli done"><div class="tt">T+1s · DocumentReference NLP</div><div class="tn">Notes parsed</div><div class="td">Extracted: "A1C lab required 2 weeks prior." Bundled automatically.</div></div>
+        <div class="tli done"><div class="tt">T+2s · DiagnosticOrder</div><div class="tn">Lab slot reserved</div><div class="td">A1C booked June 6 at Quest — no patient action needed</div></div>
+        <div class="tli done"><div class="tt">T+3s · Specialist calendar</div><div class="tn">Appointment slot held</div><div class="td">Dr. Patel, June 20, 2:30 PM — held pending patient confirm</div></div>
+        <div class="tli active"><div class="tt">T+4s · SMS sent</div><div class="tn">Patient just needs to say yes</div><div class="td">Everything is ready. One reply confirms it all.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- SDOH BARRIERS -->
+<div id="s-sdoh" class="screen">
+<div class="content ai">
+  <div class="page-title">SDOH barrier detection</div>
+  <div class="page-sub">When a patient doesn't respond, CareLoop detects why — and fixes it automatically</div>
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">Barrier detection timeline — David Johnson</div>
+      <div class="tl">
+        <div class="tli done"><div class="tt">T+0</div><div class="tn">First SMS sent</div><div class="td">Concierge message with confirm option</div></div>
+        <div class="tli warn"><div class="tt">T+24h · No response</div><div class="tn">Barrier scan triggered</div><div class="td">AI analyzes EHR demographics, prior visit notes, zip code transit score</div></div>
+        <div class="tli active"><div class="tt">T+24h · Flagged</div><div class="tn">Transportation barrier detected</div><div class="td">Patient zip = low transit score. Prior note: "no personal vehicle." Uber Health triggered.</div></div>
+        <div class="tli"><div class="tt">T+25h</div><div class="tn">Targeted re-outreach sent</div><div class="td">"We've arranged a free ride to your appointment — reply 1 to confirm."</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">All barrier types &amp; automatic responses</div>
+      <div class="barrier-card">
+        <div class="barrier-title"><i class="ti ti-car" style="font-size:14px;vertical-align:-2px;margin-right:6px;"></i>Transportation</div>
+        <div class="barrier-desc">Detected via zip code transit score + prior visit notes</div>
+        <div class="barrier-action">→ Auto-triggers Uber Health ride coordination</div>
+      </div>
+      <div class="barrier-card">
+        <div class="barrier-title"><i class="ti ti-coin" style="font-size:14px;vertical-align:-2px;margin-right:6px;"></i>Cost concern</div>
+        <div class="barrier-desc">Detected when patient replies "can't afford" or similar</div>
+        <div class="barrier-action">→ Routes to financial counselor + charity care options</div>
+      </div>
+      <div class="barrier-card">
+        <div class="barrier-title"><i class="ti ti-language" style="font-size:14px;vertical-align:-2px;margin-right:6px;"></i>Language barrier</div>
+        <div class="barrier-desc">Detected from Patient.communication FHIR + non-English reply</div>
+        <div class="barrier-action">→ Auto-switches SMS to preferred language, bilingual specialist queried</div>
+      </div>
+      <div class="barrier-card">
+        <div class="barrier-title"><i class="ti ti-clock" style="font-size:14px;vertical-align:-2px;margin-right:6px;"></i>Scheduling conflict</div>
+        <div class="barrier-desc">Patient replies with alternative time preference</div>
+        <div class="barrier-action">→ Network query reruns for next available matching slot</div>
+      </div>
+      <div class="barrier-card">
+        <div class="barrier-title"><i class="ti ti-user-x" style="font-size:14px;vertical-align:-2px;margin-right:6px;"></i>No response after 72h</div>
+        <div class="barrier-desc">All automated paths exhausted</div>
+        <div class="barrier-action">→ Escalates to human care coordinator with full context summary</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- NETWORK QUERY -->
+<div id="s-network" class="screen">
+<div class="content ai">
+  <div class="page-title">Network query engine</div>
+  <div class="page-sub">If preferred specialist is unavailable, CareLoop queries the entire in-network roster instantly</div>
+  <div class="card" style="margin-bottom:14px;">
+    <div class="card-title">Scenario — Angela Park · Orthopedics referral</div>
+    <div class="tl">
+      <div class="tli done"><div class="tt">Referral received</div><div class="tn">Preferred: Dr. Chen, Orthopedics</div><div class="td">ServiceRequest intercepted. CareLoop queries Dr. Chen's calendar.</div></div>
+      <div class="tli warn"><div class="tt">Availability check failed</div><div class="tn">Dr. Chen — next slot: 47 days out</div><div class="td">Exceeds 14-day clinical threshold. Network query automatically triggered.</div></div>
+      <div class="tli active"><div class="tt">Network query ran · 8 seconds</div><div class="tn">4 in-network alternatives found</div><div class="td">Ranked by: availability, insurance match, distance, quality score</div></div>
+      <div class="tli done"><div class="tt">Top result selected</div><div class="tn">Dr. Rivera — available in 6 days</div><div class="td">Slot held. Patient texted with option to confirm or see other choices.</div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">In-network specialists found · Orthopedics · Angela Park's insurance</div>
+    <div class="network-card best">
+      <div style="width:34px;height:34px;border-radius:50%;background:#1D9E75;display:flex;align-items:center;justify-content:center;color:white;font-size:12px;font-weight:500;flex-shrink:0;">DR</div>
+      <div class="nc-info"><div class="nc-name">Dr. Rivera — Memorial Orthopedics</div><div class="nc-detail">Available in 6 days · 2.1 mi · Quality score 94/100 · In-network confirmed</div></div>
+      <span class="badge bg"><i class="ti ti-star"></i> Best match</span>
+    </div>
+    <div class="network-card">
+      <div style="width:34px;height:34px;border-radius:50%;background:#E6F1FB;display:flex;align-items:center;justify-content:center;color:#185FA5;font-size:12px;font-weight:500;flex-shrink:0;">KP</div>
+      <div class="nc-info"><div class="nc-name">Dr. Patel — North Side Ortho</div><div class="nc-detail">Available in 9 days · 4.8 mi · Quality score 91/100 · In-network confirmed</div></div>
+      <span class="badge bb">Option 2</span>
+    </div>
+    <div class="network-card">
+      <div style="width:34px;height:34px;border-radius:50%;background:#F1EFE8;display:flex;align-items:center;justify-content:center;color:#5F5E5A;font-size:12px;font-weight:500;flex-shrink:0;">ML</div>
+      <div class="nc-info"><div class="nc-name">Dr. Lee — University Health Ortho</div><div class="nc-detail">Available in 12 days · 7.2 mi · Quality score 89/100 · In-network confirmed</div></div>
+      <span class="badge bgy">Option 3</span>
+    </div>
+    <div style="margin-top:10px;padding:10px 13px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);font-size:12px;color:var(--color-text-secondary);">
+      <i class="ti ti-shield-check" style="font-size:14px;vertical-align:-2px;margin-right:6px;color:#0F6E56;"></i>
+      All results stay <strong style="color:var(--color-text-primary);">in-network</strong> — referral leakage to competing systems prevented automatically
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- PCP DASHBOARD -->
+<div id="s-pcp" class="screen">
+<div class="content ai">
+  <div class="page-title">PCP confirmation dashboard</div>
+  <div class="page-sub">Referring physicians see real-time status on every referral they wrote — directly in their EHR workflow</div>
+  <div class="three-col" style="margin-bottom:16px;">
+    <div class="pcp-stat"><div class="pcp-val">24</div><div class="pcp-lbl">Referrals written this month</div></div>
+    <div class="pcp-stat"><div class="pcp-val" style="color:#1D9E75;">22</div><div class="pcp-lbl">Confirmed &amp; booked</div></div>
+    <div class="pcp-stat"><div class="pcp-val" style="color:#EF9F27;">2</div><div class="pcp-lbl">Barrier in progress</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Dr. Huang's referral feed — live status</div>
+    <div class="patient-row">
+      <div class="avatar" style="background:#E1F5EE;color:#0F6E56;">MR</div>
+      <div class="pi"><div class="pn">Maria Rodriguez → Endocrinology</div><div class="pd">Booked June 20 · Dr. Patel · A1C lab June 6 · Rx synced</div></div>
+      <span class="badge bg"><i class="ti ti-check"></i> Complete</span>
+    </div>
+    <div class="patient-row">
+      <div class="avatar" style="background:#FAEEDA;color:#854F0B;">DJ</div>
+      <div class="pi"><div class="pn">David Johnson → Cardiology</div><div class="pd">Transportation barrier detected · Uber Health arranged · Awaiting confirm</div></div>
+      <span class="badge ba pulse"><i class="ti ti-clock"></i> Barrier resolution</span>
+    </div>
+    <div class="patient-row">
+      <div class="avatar" style="background:#E6F1FB;color:#185FA5;">AP</div>
+      <div class="pi"><div class="pn">Angela Park → Orthopedics</div><div class="pd">Dr. Chen unavailable · Alt: Dr. Rivera booked in 6 days · In-network</div></div>
+      <span class="badge bg"><i class="ti ti-check"></i> Complete</span>
+    </div>
+    <div class="patient-row">
+      <div class="avatar" style="background:#EEEDFE;color:#3C3489;">KL</div>
+      <div class="pi"><div class="pn">Kevin Lee → Neurology</div><div class="pd">Spanish SMS sent · Bilingual specialist confirmed · Booked July 2</div></div>
+      <span class="badge bg"><i class="ti ti-check"></i> Complete</span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Why this matters</div>
+    <div style="font-size:13px;color:var(--color-text-secondary);line-height:1.7;">
+      Previously PCPs wrote referrals into a black hole — no visibility into whether patients ever booked or showed up. CareLoop pushes real-time status back into the PCP's EHR workflow via a <span class="mono">Task</span> FHIR resource update, closing the loop for the referring physician without any extra work on their part. This also creates a clinical audit trail for every referral.
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- API PLUMBING -->
+<div id="s-api" class="screen">
+<div class="content ai">
+  <div class="page-title">API plumbing</div>
+  <div class="page-sub">Every feature maps to a standard FHIR R4 endpoint — federally mandated on every US hospital EHR since 2021</div>
+  <div class="card" style="margin-bottom:14px;">
+    <table class="api-table">
+      <thead><tr><th>Feature</th><th>FHIR endpoint / Tool</th><th>Data extracted</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td style="font-weight:500;">Outreach trigger</td><td><span class="mono">ServiceRequest</span></td><td style="color:var(--color-text-secondary);">Intercepts new specialist referrals instantly</td><td><span class="badge bg"><i class="ti ti-check"></i> Live</span></td></tr>
+        <tr><td style="font-weight:500;">Consent &amp; language</td><td><span class="mono">Patient.communication</span></td><td style="color:var(--color-text-secondary);">Preferred language, opt-in status</td><td><span class="badge bg"><i class="ti ti-check"></i> Live</span></td></tr>
+        <tr><td style="font-weight:500;">Clinical note parsing</td><td><span class="mono">DocumentReference</span> + Azure OpenAI</td><td style="color:var(--color-text-secondary);">Extracts lab prereqs, Rx needs, timing directives</td><td><span class="badge bg"><i class="ti ti-check"></i> Live</span></td></tr>
+        <tr><td style="font-weight:500;">Lab scheduling</td><td><span class="mono">DiagnosticReport / Order</span></td><td style="color:var(--color-text-secondary);">Schedules prerequisite labs, syncs timing</td><td><span class="badge bb"><i class="ti ti-clock"></i> Beta</span></td></tr>
+        <tr><td style="font-weight:500;">Pharmacy sync</td><td><span class="mono">MedicationRequest</span> (RxNorm)</td><td style="color:var(--color-text-secondary);">RxNumber, refill status, pre-visit alignment</td><td><span class="badge bb"><i class="ti ti-clock"></i> Beta</span></td></tr>
+        <tr><td style="font-weight:500;">SDOH detection</td><td>EHR demographics + zip transit API</td><td style="color:var(--color-text-secondary);">Barrier classification, resolution routing</td><td><span class="badge bg"><i class="ti ti-check"></i> Live</span></td></tr>
+        <tr><td style="font-weight:500;">Transportation</td><td>Uber Health API</td><td style="color:var(--color-text-secondary);">HIPAA-compliant ride arrangement</td><td><span class="badge bg"><i class="ti ti-check"></i> Live</span></td></tr>
+        <tr><td style="font-weight:500;">Network query</td><td>Provider directory FHIR</td><td style="color:var(--color-text-secondary);">In-network specialist ranking by availability + quality</td><td><span class="badge bg"><i class="ti ti-check"></i> Live</span></td></tr>
+        <tr><td style="font-weight:500;">PCP notification</td><td><span class="mono">Task</span> FHIR resource</td><td style="color:var(--color-text-secondary);">Pushes referral status back to referring physician EHR</td><td><span class="badge bg"><i class="ti ti-check"></i> Live</span></td></tr>
+        <tr><td style="font-weight:500;">SMS outreach</td><td>Twilio / SpinSci Patient Assist</td><td style="color:var(--color-text-secondary);">Two-way TCPA-compliant messaging</td><td><span class="badge bg"><i class="ti ti-check"></i> Live</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">NLP pipeline — Azure OpenAI</div>
+      <div style="font-size:12px;color:var(--color-text-secondary);line-height:1.7;">
+        <p style="margin-bottom:8px;">Raw clinical note input:</p>
+        <div style="background:var(--color-background-secondary);padding:10px 12px;border-radius:var(--border-radius-md);font-family:var(--font-mono);font-size:11px;color:var(--color-text-primary);line-height:1.6;margin-bottom:10px;">"Schedule lipid panel 2 weeks prior to cardiology. Pt needs metformin refill before visit."</div>
+        <p style="margin-bottom:6px;">Structured output (under 3 seconds):</p>
+        <div style="background:var(--color-background-secondary);padding:10px 12px;border-radius:var(--border-radius-md);font-family:var(--font-mono);font-size:11px;color:var(--color-text-primary);line-height:1.6;">prereq_lab: "Lipid panel"<br>timing: "2 weeks before visit"<br>rx_action: "Metformin refill"<br>bundle_scheduling: true</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Security &amp; compliance</div>
+      <div class="fhir-row"><span style="color:var(--color-text-secondary);font-size:12px;">HIPAA BAA</span><span style="font-weight:500;font-size:12px;">Microsoft Azure</span></div>
+      <div class="fhir-row"><span style="color:var(--color-text-secondary);font-size:12px;">Encryption at rest</span><span style="font-weight:500;font-size:12px;">AES-256</span></div>
+      <div class="fhir-row"><span style="color:var(--color-text-secondary);font-size:12px;">Encryption in transit</span><span style="font-weight:500;font-size:12px;">TLS 1.3</span></div>
+      <div class="fhir-row"><span style="color:var(--color-text-secondary);font-size:12px;">SMS compliance</span><span style="font-weight:500;font-size:12px;">TCPA · STOP/HELP</span></div>
+      <div class="fhir-row"><span style="color:var(--color-text-secondary);font-size:12px;">Data retention</span><span style="font-weight:500;font-size:12px;">180-day PHI lifecycle</span></div>
+      <div class="fhir-row"><span style="color:var(--color-text-secondary);font-size:12px;">Access control</span><span style="font-weight:500;font-size:12px;">RBAC + audit logs</span></div>
+      <div class="fhir-row"><span style="color:var(--color-text-secondary);font-size:12px;">Roadmap</span><span style="font-weight:500;font-size:12px;">SOC 2 Type II Year 1</span></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ROI -->
+<div id="s-roi" class="screen">
+<div class="content ai">
+  <div class="page-title">Executive ROI dashboard</div>
+  <div class="page-sub">Works for any hospital — fee-for-service or value-based · Per 500-bed health system</div>
+  <div class="metrics" style="grid-template-columns:repeat(3,1fr);">
+    <div class="metric"><div class="ml">Annual leakage recaptured</div><div class="mv">$4.2M</div><div class="md">↑ Referrals kept in-network</div></div>
+    <div class="metric"><div class="ml">No-show slot savings</div><div class="mv">$1.8M</div><div class="md">↑ 25% → 7.2% no-show rate</div></div>
+    <div class="metric"><div class="ml">Staff hours freed/mo</div><div class="mv">840h</div><div class="md">↑ Full automation</div></div>
+  </div>
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">Referral dropout · before vs after CareLoop</div>
+      <div class="legend">
+        <span style="display:flex;align-items:center;gap:4px;"><span class="legend-dot" style="background:#E24B4A;"></span>Before</span>
+        <span style="display:flex;align-items:center;gap:4px;"><span class="legend-dot" style="background:#1D9E75;"></span>After</span>
+      </div>
+      <div class="bar-chart">
+        <div class="bar-group"><div class="bar-pair"><div class="bar" style="background:#E24B4A;height:100%;"></div><div class="bar" style="background:#1D9E75;height:11%;"></div></div><div class="bar-lbl">Cardiology</div></div>
+        <div class="bar-group"><div class="bar-pair"><div class="bar" style="background:#E24B4A;height:92%;"></div><div class="bar" style="background:#1D9E75;height:10%;"></div></div><div class="bar-lbl">Endocrinology</div></div>
+        <div class="bar-group"><div class="bar-pair"><div class="bar" style="background:#E24B4A;height:85%;"></div><div class="bar" style="background:#1D9E75;height:13%;"></div></div><div class="bar-lbl">Orthopedics</div></div>
+        <div class="bar-group"><div class="bar-pair"><div class="bar" style="background:#E24B4A;height:78%;"></div><div class="bar" style="background:#1D9E75;height:12%;"></div></div><div class="bar-lbl">Neurology</div></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--color-text-secondary);margin-top:5px;"><span>0%</span><span>40% → ~5%</span></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Why ROI works for every hospital type</div>
+      <div class="fhir-row"><span style="font-weight:500;">Fee-for-service</span><span style="color:#0F6E56;font-size:12px;">No-show slots = direct $200–500 loss each</span></div>
+      <div class="fhir-row"><span style="font-weight:500;">Value-based / ACO</span><span style="color:#0F6E56;font-size:12px;">Sicker patients = financial penalty</span></div>
+      <div class="fhir-row"><span style="font-weight:500;">Medicare Advantage</span><span style="color:#0F6E56;font-size:12px;">Quality scores tied to follow-through</span></div>
+      <div class="fhir-row"><span style="font-weight:500;">Any payer mix</span><span style="color:#0F6E56;font-size:12px;">Staff cost savings universal</span></div>
+      <div style="margin-top:14px;padding:12px 14px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);">
+        <div style="font-size:11px;color:var(--color-text-secondary);">Time to book improvement</div>
+        <div style="font-size:26px;font-weight:500;color:#1D9E75;margin-top:3px;">16× faster</div>
+        <div style="font-size:11px;color:var(--color-text-secondary);margin-top:2px;">21 days → 31 hours</div>
+      </div>
+      <div style="margin-top:10px;padding:12px 14px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);">
+        <div style="font-size:11px;color:var(--color-text-secondary);">Pricing per referral processed</div>
+        <div style="font-size:26px;font-weight:500;color:var(--color-text-primary);margin-top:3px;">$8 – $12</div>
+        <div style="font-size:11px;color:var(--color-text-secondary);margin-top:2px;">500-bed hospital = ~$300K/yr contract · saves $4.2M</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('s-' + id).classList.add('active');
+  const tabs = ['dashboard','concierge','sdoh','network','pcp','api','roi'];
+  document.querySelectorAll('.nav-tab')[tabs.indexOf(id)].classList.add('active');
+  if (id === 'concierge' && !window.smsReady) initSMS();
+}
+
+function initSMS() {
+  window.smsReady = true;
+  const t = document.getElementById('sms-thread');
+  t.innerHTML = '';
+  addBubble('out', 'CareLoop · 9:04 AM', "Hi Maria! Dr. Huang referred you to Endocrinology. We've already reserved a slot with Dr. Patel on June 20 at 2:30 PM and booked your A1C lab for June 6 — both are ready. Reply 1 to confirm everything. Reply STOP to opt out.");
+}
+
+function addBubble(dir, lbl, txt) {
+  const t = document.getElementById('sms-thread');
+  const w = document.createElement('div');
+  const l = document.createElement('div');
+  l.className = 'sms-lbl' + (dir === 'out' ? ' r' : '');
+  l.textContent = lbl;
+  const b = document.createElement('div');
+  b.className = 'sms-bubble sms-' + dir;
+  b.textContent = txt;
+  w.appendChild(l); w.appendChild(b);
+  w.style.animation = 'fadeUp 0.2s ease';
+  t.appendChild(w);
+  t.scrollTop = t.scrollHeight;
+}
+
+function smsReply(v) {
+  addBubble('in', 'Maria · just now', v);
+  setTimeout(() => {
+    if (v === '1') {
+      addBubble('out', 'CareLoop · just now', "All confirmed! Endocrinology: June 20, 2:30 PM with Dr. Patel. A1C lab: June 6 at Quest. Metformin refill synced. Dr. Huang has been notified. See you soon!");
+      document.getElementById('sms-btns').style.display = 'none';
+    } else if (v === 'STOP') {
+      addBubble('out', 'CareLoop · just now', "You've been opted out. No more messages. Call Memorial Health at (800) 555-1234 to manage your referral directly. — Memorial Health");
+    } else if (v === 'cant afford') {
+      addBubble('out', 'CareLoop · just now', "Cost should never be a barrier to care. We've connected you with our financial counselor team — someone will call within 2 hours to discuss payment plans and charity care. Your appointment slot is being held.");
+    }
+  }, 550);
+}
+
+initSMS();
+</script>
+</body>
+</html>
